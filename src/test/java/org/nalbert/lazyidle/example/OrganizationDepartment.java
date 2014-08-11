@@ -45,7 +45,7 @@ public class OrganizationDepartment {
     try {
        records = DataSource.createRecords(connection);
     } catch (SQLException e) {
-      e.printStackTrace();
+      e.printStackTrace(); //test
     }
 
    Sequence<Record> recordsSequence = records.get(OrganizationDef.organizationDef);
