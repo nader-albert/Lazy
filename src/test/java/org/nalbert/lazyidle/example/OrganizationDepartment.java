@@ -4,8 +4,13 @@ import com.googlecode.lazyrecords.Grammar;
 import com.googlecode.lazyrecords.Keyword;
 import com.googlecode.lazyrecords.Record;
 import com.googlecode.lazyrecords.Records;
+import com.googlecode.lazyrecords.sql.SqlSequence;
 import com.googlecode.totallylazy.Function1;
+import com.googlecode.totallylazy.Group;
 import com.googlecode.totallylazy.Sequence;
+import org.hamcrest.Matcher;
+import org.hamcrest.core.IsEqual;
+import org.hamcrest.core.StringStartsWith;
 import org.nalbert.lazyidle.example.lazyrecord.OrganizationDef;
 import org.testng.annotations.Test;
 
@@ -14,6 +19,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.nalbert.lazyidle.example.h2.DataSource;
@@ -65,10 +72,14 @@ public class OrganizationDepartment {
       e.printStackTrace();
     }
 
-    Record organizationRecord1 = generateOrganizationRecord(UUID.randomUUID(),organization1URI,"PwC",true,new BigDecimal(157));
-    Record organizationRecord2 = generateOrganizationRecord(UUID.randomUUID(),organization2URI,"Ernest",true,new BigDecimal(158));
-    Record organizationRecord3 = generateOrganizationRecord(UUID.randomUUID(),organization3URI,"Deloite",true,new BigDecimal(156));
-    Record organizationRecord4 = generateOrganizationRecord(UUID.randomUUID(),organization4URI,"XYZ",true,new BigDecimal(155));
+    Record organizationRecord1 = generateOrganizationRecord(UUID.randomUUID(),
+            organization1URI,"PwC",true,new BigDecimal(157));
+    Record organizationRecord2 = generateOrganizationRecord(UUID.randomUUID(),
+            organization2URI,"Ernest",true,new BigDecimal(158));
+    Record organizationRecord3 = generateOrganizationRecord(UUID.randomUUID(),
+            organization3URI,"Deloite",true,new BigDecimal(156));
+    Record organizationRecord4 = generateOrganizationRecord(UUID.randomUUID(),
+            organization4URI,"XYZ",true,new BigDecimal(155));
 
     assertThat(records.get(OrganizationDef.organizationDef).filter(all()).size(), is(0));
 
@@ -86,9 +97,9 @@ public class OrganizationDepartment {
   @Test
   /**
    * as opposed to the previous eager implementation, this function tests the lazy way of adding sequence of new records
-   * to the Records data-structure. Instead of directly adding the modified sequence, a function add, is being pulled back
-   * which can be invoked at a later time, when the addition is really required. You are kind of describing what you need
-   * first and then at a later time, you are actually invoking it, and from here stems the term lazy.
+   * to the Records data-structure. Instead of directly adding the modified sequence, a function add, is being pulled
+   * back which can be invoked at a later time, when the addition is really required. You are kind of describing what
+   * you need first and then at a later time, you are actually invoking it, and from here stems the term lazy.
    * */
   public void testLazyOrganizationsAdd() {
     this.connection = DataSource.getH2Connection();
@@ -175,10 +186,14 @@ public class OrganizationDepartment {
       e.printStackTrace();
     }
 
-    Record organizationRecord1 = generateOrganizationRecord(UUID.randomUUID(),organization1URI,"PwC",true,new BigDecimal(157));
-    Record organizationRecord2 = generateOrganizationRecord(UUID.randomUUID(),organization2URI,"Ernest",true,new BigDecimal(158));
-    Record organizationRecord3 = generateOrganizationRecord(UUID.randomUUID(),organization3URI,"Deloite",true,new BigDecimal(156));
-    Record organizationRecord4 = generateOrganizationRecord(UUID.randomUUID(),organization4URI,"XYZ",true,new BigDecimal(155));
+    Record organizationRecord1 = generateOrganizationRecord(UUID.randomUUID(),
+            organization1URI,"PwC",true,new BigDecimal(157));
+    Record organizationRecord2 = generateOrganizationRecord(UUID.randomUUID(),
+            organization2URI,"Ernest",true,new BigDecimal(158));
+    Record organizationRecord3 = generateOrganizationRecord(UUID.randomUUID(),
+            organization3URI,"Deloite",true,new BigDecimal(156));
+    Record organizationRecord4 = generateOrganizationRecord(UUID.randomUUID(),
+            organization4URI,"XYZ",true,new BigDecimal(155));
 
     assertThat(records.get(OrganizationDef.organizationDef).filter(all()).size(), is(0));
 
@@ -197,29 +212,105 @@ public class OrganizationDepartment {
       e.printStackTrace();
     }
 
-    // ensure that no records have been added yet
+    // ensure that all 4 records have been added
     assertThat(records.get(OrganizationDef.organizationDef).filter(all()).size(), is(4));
 
     // ensure that no records have been added yet
-    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.mutliNational, Grammar.is(true))).size(), is(4));
+    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.mutliNational,
+            Grammar.is(true))).size(), is(4));
 
     // ensure that no records have been added yet
-    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.url, Grammar.is(organization1URI))).size(), is(1));
+    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.url,
+            Grammar.is(organization1URI))).size(), is(1));
 
     // ensure that only one organization is called PwC
-    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.name, Grammar.eq("PwC"))).size(), is(1));
+    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.name,
+            Grammar.eq("PwC"))).size(), is(1));
 
     // ensure that no organization is called pwc with small letters
-    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.name, Grammar.is("pwc"))).size(), is(0));
+    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.name,
+            Grammar.is("pwc"))).size(), is(0));
 
     // ensure that no records have been added yet
-    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.numberOfBranches, Grammar.between(new BigDecimal(155),new BigDecimal(157)))).size(), is(3));
+    assertThat(records.get(OrganizationDef.organizationDef).filter(where(OrganizationDef.numberOfBranches,
+            Grammar.between(new BigDecimal(155),new BigDecimal(157)))).size(), is(3));
   }
 
   /**
    * */
-  public void testOrganizationRecordValueRetrieval(){
+  public void testSequenceMapAndFlatMap(){
+    this.connection = DataSource.getH2Connection();
+    try {
+      records = DataSource.createRecords(connection);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
 
+    Sequence<Record> recordsSequence = records.get(OrganizationDef.organizationDef);
+
+    URI organization1URI = null;
+    URI organization2URI = null;
+    URI organization3URI = null;
+    URI organization4URI = null;
+
+    try {
+      organization1URI = new URI("http://www.pwc.au.com");
+      organization2URI = new URI("http://www.deloite.au.com");
+      organization3URI = new URI("http://www.ernest.au.com");
+      organization4URI = new URI("http://www.xyz.au.com");
+
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
+    }
+
+    Record organizationRecord1 = generateOrganizationRecord(UUID.randomUUID(),
+            organization1URI,"PwC",true,new BigDecimal(157));
+    Record organizationRecord2 = generateOrganizationRecord(UUID.randomUUID(),
+            organization2URI,"Ernest",true,new BigDecimal(158));
+    Record organizationRecord3 = generateOrganizationRecord(UUID.randomUUID(),
+            organization3URI,"Deloite",true,new BigDecimal(156));
+    Record organizationRecord4 = generateOrganizationRecord(UUID.randomUUID(),
+            organization4URI,"XYZ",true,new BigDecimal(155));
+
+
+    // sequence.add is deprecated to avoid mutability, and that's why cons is used instead. note that another sequence
+    // object has been created rather than modifying the existing one.
+    recordsSequence = recordsSequence.cons(organizationRecord1);
+    recordsSequence = recordsSequence.cons(organizationRecord2);
+    recordsSequence = recordsSequence.cons(organizationRecord3);
+    recordsSequence = recordsSequence.cons(organizationRecord4);
+
+    records.add(OrganizationDef.organizationDef,recordsSequence);
+
+    // ensure that all 4 records have been added
+    assertThat(records.get(OrganizationDef.organizationDef).filter(all()).size(), is(4));
+
+    //TEST sequence.flatmap
+    Sequence<String> recordSequence1 = records.get(OrganizationDef.organizationDef).filter(all()).flatMap(
+            new Function1< Record, Sequence <String>>(){
+              public Sequence<String> call(Record rec){
+                List recordValues = new ArrayList<String>();
+                recordValues.add(rec.get(OrganizationDef.name));
+                return new Group<String,String>("1",recordValues);
+              }
+    });
+
+    assertThat(recordSequence1.filter(all()).size(), is(4));
+    assertThat(recordSequence1.filter(all()).head(), new IsEqual<String>("XYZ"));
+    assertThat(recordSequence1.filter(all()).tail().head(), new IsEqual<String>("Deloite"));
+    assertThat(recordSequence1.filter(all()).last(), new IsEqual<String>("PwC"));
+
+    //TEST sequence.map
+    Sequence<String> recordSequence2 = records.get(OrganizationDef.organizationDef).filter(all()).map(
+            new Function1<Record, String>() {
+              public String call(Record rec) {
+                return "Record";
+              }
+            });
+
+    assertThat(recordSequence2.filter(all()).size(), is(4));
+    assertThat(recordSequence2.filter(all()).head(), new IsEqual<String>("Record"));
+    assertThat(recordSequence2.filter(all()).tail().head(), new IsEqual<String>("Record"));
   }
 
   /**
